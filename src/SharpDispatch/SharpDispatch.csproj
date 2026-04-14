@@ -11,18 +11,32 @@
     <NoWarn>$(NoWarn);1591;SA1101;SA1633;SA1309</NoWarn>
 
     <PackageId>SharpDispatch</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>MPCoreDeveloper</Authors>
     <Company>SharpCoreDB</Company>
     <Product>SharpDispatch</Product>
     <Description>Standalone CQRS command dispatching primitives for .NET 10.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Copyright>Copyright (c) 2025 MPCoreDeveloper. Licensed under the MIT License.</Copyright>
     <PackageReadmeFile>NuGet.README.md</PackageReadmeFile>
     <PackageIcon>SharpDispatch.jpg</PackageIcon>
     <PackageProjectUrl>https://github.com/MPCoreDeveloper/SharpDispatch</PackageProjectUrl>
-    <PackageReleaseNotes>Initial release of SharpDispatch - high-performance CQRS command dispatching for .NET 10.</PackageReleaseNotes>
+    <PackageReleaseNotes>Second release of SharpDispatch with SourceLink integration - high-performance CQRS command dispatching for .NET 10.</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/MPCoreDeveloper/SharpDispatch</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <PackageTags>cqrs;command-dispatch;command-dispatcher;patterns;architecture;net10;high-performance;native-aot;dependency-injection</PackageTags>
+    
+    <!-- Symbol Package Configuration -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+
+    <!-- Git & Source Link Configuration -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedAllSources>true</EmbedAllSources>
+    <DebugType>embedded</DebugType>
+    <Deterministic>true</Deterministic>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,7 +50,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.6" />
+  </ItemGroup>
+
+  <!-- Source Link Package Reference -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.202" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
