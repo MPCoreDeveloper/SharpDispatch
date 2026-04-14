@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -13,11 +13,11 @@
     <PackageId>SharpDispatch</PackageId>
     <Version>1.0.1</Version>
     <Authors>MPCoreDeveloper</Authors>
-    <Company>SharpCoreDB</Company>
+    <Company>Posseth Software</Company>
     <Product>SharpDispatch</Product>
     <Description>Standalone CQRS command dispatching primitives for .NET 10.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Copyright>Copyright (c) 2025 MPCoreDeveloper. Licensed under the MIT License.</Copyright>
+    <Copyright>Copyright (c) 2025 Posseth Software. Licensed under the MIT License.</Copyright>
     <PackageReadmeFile>NuGet.README.md</PackageReadmeFile>
     <PackageIcon>SharpDispatch.jpg</PackageIcon>
     <PackageProjectUrl>https://github.com/MPCoreDeveloper/SharpDispatch</PackageProjectUrl>
