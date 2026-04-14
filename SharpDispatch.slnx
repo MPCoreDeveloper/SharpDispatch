@@ -1,0 +1,25 @@
+<Solution>
+  <Folder Name="/.github/">
+    <File Path=".github/workflows/dotnet-ci.yml" />
+    <File Path=".github/CODING_STANDARDS_CSHARP14.md" />
+  </Folder>
+  <Folder Name="/docs/">
+    <File Path="docs/.gitkeep" />
+  </Folder>
+  <Folder Name="/examples/">
+    <File Path="examples/.gitkeep" />
+  </Folder>
+  <Folder Name="/repo/">
+    <File Path="README.md" />
+    <File Path="LICENSE" />
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="repo/.gitkeep" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/SharpDispatch/SharpDispatch.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <File Path="tests/.gitkeep" />
+  </Folder>
+</Solution>
