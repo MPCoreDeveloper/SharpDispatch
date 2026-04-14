@@ -15,7 +15,7 @@
     <Authors>MPCoreDeveloper</Authors>
     <Company>SharpCoreDB</Company>
     <Product>SharpDispatch</Product>
-    <Description>Standalone CQRS command dispatching primitives voor .NET 10.</Description>
+    <Description>Standalone CQRS command dispatching primitives for .NET 10.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>NuGet.README.md</PackageReadmeFile>
     <PackageIcon>SharpDispatch.jpg</PackageIcon>
