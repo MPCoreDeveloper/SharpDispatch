@@ -20,7 +20,11 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Restore
-        run: dotnet restore src/SharpDispatch/SharpDispatch.csproj
+        run: dotnet restore SharpDispatch.slnx
 
       - name: Build
-        run: dotnet build src/SharpDispatch/SharpDispatch.csproj --configuration Release --no-restore
+        run: dotnet build SharpDispatch.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test tests/SharpDispatch.Tests/SharpDispatch.Tests.csproj --configuration Release --no-build
+

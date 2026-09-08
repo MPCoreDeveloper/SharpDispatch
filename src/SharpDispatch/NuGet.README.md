@@ -16,7 +16,8 @@
 - **📦 Zero dependencies** — Only `Microsoft.Extensions.DependencyInjection.Abstractions`
 - **🔒 Type-safe** — Compile-time handler registration and exhaustive dispatch
 - **🧪 Test-friendly** — In-memory dispatcher for fast unit tests
-- **♻️ Zero-copy ready** — Pass `ReadOnlySpan<T>` and `Memory<T>` through commands
+- **♻️ Struct commands** — Value-type commands dispatch without boxing
+- **🧩 Decorators** — Wrap the dispatcher with `TryDecorate` for logging/metrics
 
 ## ✨ What's Included
 
@@ -138,7 +139,12 @@ public async Task ShouldCreateOrder()
 
 ## 📚 Learn More
 
-For comprehensive documentation, benchmarks, and advanced patterns, visit the [GitHub repository](https://github.com/MPCoreDeveloper/SharpDispatch).
+- **Documentation** — [docs/](https://github.com/MPCoreDeveloper/SharpDispatch/blob/main/docs/README.md):
+  getting started, dispatcher guide, advanced patterns, Native AOT, API reference.
+- **Examples** — runnable projects in the repository:
+  `examples/ConsoleQuickStart`, `examples/MinimalApi`, `examples/HighPerformance`.
+- **Release notes** — [CHANGELOG.md](https://github.com/MPCoreDeveloper/SharpDispatch/blob/main/CHANGELOG.md).
+- Visit the [GitHub repository](https://github.com/MPCoreDeveloper/SharpDispatch).
 
 ---
 

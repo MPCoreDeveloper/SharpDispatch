@@ -15,6 +15,16 @@ public readonly record struct CommandDispatchResult(
     string? Message)
 {
     /// <summary>
+    /// Gets a value indicating whether command handling succeeded.
+    /// </summary>
+    public bool IsSuccess => Success;
+
+    /// <summary>
+    /// Gets a value indicating whether command handling failed.
+    /// </summary>
+    public bool IsFailure => !Success;
+
+    /// <summary>
     /// Creates a successful result.
     /// </summary>
     /// <param name="message">Optional success message.</param>
@@ -27,4 +37,15 @@ public readonly record struct CommandDispatchResult(
     /// <param name="message">Failure reason.</param>
     /// <returns>Failed dispatch result.</returns>
     public static CommandDispatchResult Fail(string message) => new(false, message);
+
+    /// <summary>
+    /// Creates a failed result from an exception.
+    /// </summary>
+    /// <param name="exception">The exception that caused the failure.</param>
+    /// <returns>A failed dispatch result carrying the exception message.</returns>
+    public static CommandDispatchResult FromException(Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+        return new CommandDispatchResult(false, exception.Message);
+    }
 }

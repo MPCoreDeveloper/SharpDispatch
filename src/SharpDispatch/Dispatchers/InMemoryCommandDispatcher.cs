@@ -27,6 +27,44 @@ public sealed class InMemoryCommandDispatcher : ICommandDispatcher
         _handlers[typeof(TCommand)] = handler;
     }
 
+    /// <summary>
+    /// Registers a delegate-based command handler.
+    /// </summary>
+    /// <typeparam name="TCommand">Command type.</typeparam>
+    /// <param name="handler">Handler delegate receiving the command and a cancellation token.</param>
+    public void RegisterHandler<TCommand>(Func<TCommand, CancellationToken, Task<CommandDispatchResult>> handler)
+        where TCommand : ICommand
+    {
+        ArgumentNullException.ThrowIfNull(handler);
+        RegisterHandler(new DelegateCommandHandler<TCommand>(handler));
+    }
+
+    /// <summary>
+    /// Registers a delegate-based command handler that does not observe cancellation.
+    /// </summary>
+    /// <typeparam name="TCommand">Command type.</typeparam>
+    /// <param name="handler">Handler delegate receiving the command.</param>
+    public void RegisterHandler<TCommand>(Func<TCommand, Task<CommandDispatchResult>> handler)
+        where TCommand : ICommand
+    {
+        ArgumentNullException.ThrowIfNull(handler);
+        RegisterHandler(new DelegateCommandHandler<TCommand>((command, _) => handler(command)));
+    }
+
+    /// <summary>
+    /// Gets the number of registered command handlers.
+    /// </summary>
+    public int HandlerCount => _handlers.Count;
+
+    /// <summary>
+    /// Determines whether a handler is registered for the specified command type.
+    /// </summary>
+    /// <typeparam name="TCommand">Command type.</typeparam>
+    /// <returns><see langword="true"/> when a handler is registered; otherwise <see langword="false"/>.</returns>
+    public bool ContainsHandler<TCommand>()
+        where TCommand : ICommand
+        => _handlers.ContainsKey(typeof(TCommand));
+
     /// <inheritdoc />
     public Task<CommandDispatchResult> DispatchAsync<TCommand>(
         TCommand command,
@@ -42,5 +80,15 @@ public sealed class InMemoryCommandDispatcher : ICommandDispatcher
         }
 
         return handler.HandleAsync(command, cancellationToken);
+    }
+
+    private sealed class DelegateCommandHandler<TCommand>(
+        Func<TCommand, CancellationToken, Task<CommandDispatchResult>> handler) : ICommandHandler<TCommand>
+        where TCommand : ICommand
+    {
+        public Task<CommandDispatchResult> HandleAsync(
+            TCommand command,
+            CancellationToken cancellationToken)
+            => handler(command, cancellationToken);
     }
 }

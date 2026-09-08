@@ -28,9 +28,36 @@ public static class DispatchServiceCollectionExtensions
         this IServiceCollection services)
         where TCommand : ICommand
         where THandler : class, ICommandHandler<TCommand>
+        => services.AddCommandHandler<TCommand, THandler>(ServiceLifetime.Singleton);
+
+    /// <summary>
+    /// Registers a command handler in the DI container with the specified lifetime.
+    /// Compatible with all three dispatcher implementations.
+    /// </summary>
+    /// <typeparam name="TCommand">Command type.</typeparam>
+    /// <typeparam name="THandler">Handler implementation type.</typeparam>
+    /// <param name="services">Service collection.</param>
+    /// <param name="lifetime">
+    /// Desired service lifetime. Prefer <see cref="ServiceLifetime.Singleton"/> for stateless
+    /// handlers; use scoped or transient lifetimes when a handler requires per-operation state.
+    /// </param>
+    /// <returns>Service collection for chaining.</returns>
+    /// <remarks>
+    /// Scoped and transient handlers are resolved on every dispatch from the provider supplied
+    /// to the dispatcher. When the dispatcher is registered as a singleton, scoped handlers are
+    /// resolved from the root scope — see the documentation for scope-aware alternatives.
+    /// </remarks>
+    public static IServiceCollection AddCommandHandler<TCommand, THandler>(
+        this IServiceCollection services,
+        ServiceLifetime lifetime)
+        where TCommand : ICommand
+        where THandler : class, ICommandHandler<TCommand>
     {
         ArgumentNullException.ThrowIfNull(services);
-        services.AddSingleton<ICommandHandler<TCommand>, THandler>();
+        services.Add(ServiceDescriptor.Describe(
+            typeof(ICommandHandler<TCommand>),
+            typeof(THandler),
+            lifetime));
         return services;
     }
 
@@ -143,5 +170,89 @@ public static class DispatchServiceCollectionExtensions
         services.Replace(ServiceDescriptor.Singleton<ICommandDispatcher>(
             sp => new OptimizedCommandDispatcher(sp, services)));
         return services;
+    }
+
+    // ── Decorator support ─────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Wraps the most recently registered <typeparamref name="TService"/> with
+    /// <typeparamref name="TDecorator"/> (last registration wins, mirroring
+    /// <see cref="IServiceProvider.GetService(Type)"/> resolution order).
+    /// </summary>
+    /// <typeparam name="TService">The service type to decorate.</typeparam>
+    /// <typeparam name="TDecorator">
+    /// The decorator type. Its constructor must accept an inner
+    /// <typeparamref name="TService"/> instance (resolved from the original registration);
+    /// any remaining constructor arguments are resolved from DI.
+    /// </typeparam>
+    /// <param name="services">Service collection.</param>
+    /// <returns>Service collection for chaining.</returns>
+    /// <remarks>
+    /// <para>
+    /// No-op when no registration of <typeparamref name="TService"/> exists
+    /// (the "<i>try</i>" semantics). The original service lifetime is preserved for
+    /// the decorated registration.
+    /// </para>
+    /// <para>
+    /// <b>Startup-time convenience only.</b> Decorators are resolved through
+    /// <see cref="ActivatorUtilities"/>, so this helper is <em>not</em> Native AOT-safe.
+    /// Prefer the scan-free <see cref="AddOptimizedCommandDispatcher(IServiceCollection, Action{CommandDispatcherBuilder})"/>
+    /// registration path in AOT/trimmed deployments.
+    /// </para>
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// services.AddCommandDispatcher();
+    /// services.TryDecorate&lt;ICommandDispatcher, LoggingCommandDispatcher&gt;();
+    /// </code>
+    /// </example>
+    [RequiresDynamicCode("Resolves the decorator and inner service constructors at runtime via ActivatorUtilities.")]
+    [RequiresUnreferencedCode("Resolves the decorator and inner service constructors at runtime via ActivatorUtilities.")]
+    public static IServiceCollection TryDecorate<TService, TDecorator>(
+        this IServiceCollection services)
+        where TService : class
+        where TDecorator : class, TService
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        for (var i = services.Count - 1; i >= 0; i--)
+        {
+            var inner = services[i];
+            if (inner.ServiceType != typeof(TService))
+            {
+                continue;
+            }
+
+            services.RemoveAt(i);
+            services.Add(ServiceDescriptor.Describe(
+                typeof(TService),
+                sp => ActivatorUtilities.CreateInstance<TDecorator>(
+                    sp,
+                    ResolveService(sp, inner)),
+                inner.Lifetime));
+
+            return services;
+        }
+
+        return services;
+    }
+
+    private static object ResolveService(IServiceProvider serviceProvider, ServiceDescriptor descriptor)
+    {
+        if (descriptor.ImplementationInstance is not null)
+        {
+            return descriptor.ImplementationInstance;
+        }
+
+        if (descriptor.ImplementationFactory is not null)
+        {
+            return descriptor.ImplementationFactory(serviceProvider);
+        }
+
+        var implementationType = descriptor.ImplementationType
+            ?? throw new InvalidOperationException(
+                $"Service '{descriptor.ServiceType}' has no resolvable implementation.");
+
+        return ActivatorUtilities.CreateInstance(serviceProvider, implementationType);
     }
 }

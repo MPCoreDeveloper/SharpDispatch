@@ -11,7 +11,7 @@
     <NoWarn>$(NoWarn);1591;SA1101;SA1633;SA1309</NoWarn>
 
     <PackageId>SharpDispatch</PackageId>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Authors>MPCoreDeveloper</Authors>
     <Company>Posseth Software</Company>
     <Product>SharpDispatch</Product>
@@ -21,7 +21,7 @@
     <PackageReadmeFile>NuGet.README.md</PackageReadmeFile>
     <PackageIcon>SharpDispatch.jpg</PackageIcon>
     <PackageProjectUrl>https://github.com/MPCoreDeveloper/SharpDispatch</PackageProjectUrl>
-    <PackageReleaseNotes>Second release of SharpDispatch with SourceLink integration - high-performance CQRS command dispatching for .NET 10.</PackageReleaseNotes>
+    <PackageReleaseNotes>Third release of SharpDispatch. Backwards-compatible enhancements: IsSuccess/IsFailure and FromException on CommandDispatchResult, AddCommandHandler lifetime overload, delegate registration + HandlerCount/ContainsHandler on InMemoryCommandDispatcher, new TryDecorate decorator helper, xUnit test suite (43 tests), runnable examples and structured docs. Dependencies updated to latest stable (DI.Abstractions 10.0.11, SourceLink.GitHub 10.0.400).</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/MPCoreDeveloper/SharpDispatch</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>cqrs;command-dispatch;command-dispatcher;patterns;architecture;net10;high-performance;native-aot;dependency-injection</PackageTags>
@@ -50,12 +50,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.11" />
   </ItemGroup>
 
   <!-- Source Link Package Reference -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.400" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>

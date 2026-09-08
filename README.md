@@ -19,7 +19,7 @@
 - **🚀 Sub-microsecond dispatch latency** — Singleton handlers dispatch in ~10–15ns with zero allocations
 - **🎯 Native AOT ready** — Full support for ahead-of-time compilation via `CommandDispatcherBuilder`
 - **📦 Zero dependencies** — Relies only on `Microsoft.Extensions.DependencyInjection.Abstractions`
-- **♻️ Zero-copy friendly** — Pass `ReadOnlySpan<T>` and `Memory<T>` through commands without allocation
+- **♻️ Zero-copy friendly** — Share `Memory<T>` payloads through commands without copying; struct commands avoid boxing on the hot path
 - **🔒 Type-safe** — Compile-time checked handler registration with exhaustive dispatch
 - **🧪 Test-friendly** — In-memory dispatcher for fast, isolated unit tests
 - **🌍 Standalone** — No coupling to event sourcing, databases, or messaging — works everywhere
@@ -261,15 +261,28 @@ public async Task CreateOrderCommand_WithValidData_ShouldSucceed()
 
 ### Scoped Handlers
 
-Handlers with scoped lifetime are resolved per dispatch:
+Handlers can be registered with any container lifetime, both through DI and the
+optimized builder:
 
 ```csharp
+// DI registration with an explicit lifetime
+services.AddCommandHandler<ReportGenerationCommand, ReportGenerationHandler>(
+    ServiceLifetime.Scoped);
+
+// Equivalent inside the AOT-safe optimized builder
 services.AddOptimizedCommandDispatcher(cfg =>
 {
     cfg.AddHandler<ReportGenerationCommand, ReportGenerationHandler>(
         lifetime: ServiceLifetime.Scoped);
 });
 ```
+
+> ⚠️ **Scope caveat:** the dispatchers are singletons, so a *scoped* handler is
+> resolved from the provider the dispatcher holds. When that is the root
+> container the handler behaves like a root-scope singleton. For true
+> per-request scoping, dispatch from within a DI scope or inject
+> `IServiceScopeFactory` into the handler — see
+> [Handler lifetimes & scoping](docs/advanced-patterns.md#handler-lifetimes--scoping).
 
 ### Custom Handler Factories
 
@@ -326,7 +339,7 @@ public class LoggingDispatcher : ICommandDispatcher
 
 // Register
 services.AddCommandDispatcher();
-services.Decorate<ICommandDispatcher, LoggingDispatcher>();
+services.TryDecorate<ICommandDispatcher, LoggingDispatcher>();
 ```
 
 ---
@@ -343,6 +356,27 @@ services.Decorate<ICommandDispatcher, LoggingDispatcher>();
 | `InMemoryCommandDispatcher` | In-memory test dispatcher |
 | `OptimizedCommandDispatcher` | High-performance dispatcher |
 | `CommandDispatcherBuilder` | AOT-safe fluent builder |
+| `DispatchServiceCollectionExtensions` | DI helpers incl. `TryDecorate` |
+
+---
+
+## 📚 Documentation & Examples
+
+Deep-dive guides live in [`docs/`](docs/README.md):
+
+- **[Getting Started](docs/getting-started.md)** — install, define, register, dispatch
+- **[Dispatchers](docs/dispatchers.md)** — when to use which dispatcher, lifetimes, decorators
+- **[Advanced Patterns](docs/advanced-patterns.md)** — struct commands, scoping, failures, testing
+- **[Native AOT](docs/native-aot.md)** — reflection-free registration for trimmed builds
+- **[API Reference](docs/api-reference.md)** — every public type and member
+
+Runnable examples:
+
+- `examples/ConsoleQuickStart` — `dotnet run --project examples/ConsoleQuickStart`
+- `examples/MinimalApi` — `dotnet run --project examples/MinimalApi`
+- `examples/HighPerformance` — `dotnet run --project examples/HighPerformance -c Release`
+
+Release history: [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
