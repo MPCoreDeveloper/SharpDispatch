@@ -10,6 +10,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using SharpDispatch;
+using ConsoleQuickStart;
 
 // ---- 1. Build the service collection --------------------------------------
 var services = new ServiceCollection();
@@ -56,45 +57,48 @@ Console.WriteLine("Done.");
 // Domain types (kept in one file for readability).
 // =============================================================================
 
-/// <summary>Command: an immutable request to create an order.</summary>
-public sealed record CreateOrderCommand(string OrderId, decimal Amount) : ICommand;
-
-/// <summary>Aggregate/entity produced by the command handler.</summary>
-public sealed record Order(string OrderId, decimal Amount);
-
-public interface IOrderRepository
+namespace ConsoleQuickStart
 {
-    int Count { get; }
+    /// <summary>Command: an immutable request to create an order.</summary>
+    public sealed record CreateOrderCommand(string OrderId, decimal Amount) : ICommand;
 
-    void Save(Order order);
-}
+    /// <summary>Aggregate/entity produced by the command handler.</summary>
+    public sealed record Order(string OrderId, decimal Amount);
 
-public sealed class InMemoryOrderRepository : IOrderRepository
-{
-    private readonly List<Order> _orders = [];
-
-    public int Count => _orders.Count;
-
-    public void Save(Order order) => _orders.Add(order);
-}
-
-/// <summary>Handler: validates the command and applies the state change.</summary>
-public sealed class CreateOrderCommandHandler(IOrderRepository repository) : ICommandHandler<CreateOrderCommand>
-{
-    public Task<CommandDispatchResult> HandleAsync(
-        CreateOrderCommand command,
-        CancellationToken cancellationToken)
+    public interface IOrderRepository
     {
-        if (command.Amount <= 0)
+        int Count { get; }
+
+        void Save(Order order);
+    }
+
+    public sealed class InMemoryOrderRepository : IOrderRepository
+    {
+        private readonly List<Order> _orders = [];
+
+        public int Count => _orders.Count;
+
+        public void Save(Order order) => _orders.Add(order);
+    }
+
+    /// <summary>Handler: validates the command and applies the state change.</summary>
+    public sealed class CreateOrderCommandHandler(IOrderRepository repository) : ICommandHandler<CreateOrderCommand>
+    {
+        public Task<CommandDispatchResult> HandleAsync(
+            CreateOrderCommand command,
+            CancellationToken cancellationToken = default)
         {
+            if (command.Amount <= 0)
+            {
+                return Task.FromResult(
+                    CommandDispatchResult.Fail(
+                        $"Amount must be greater than zero (received {command.Amount})."));
+            }
+
+            repository.Save(new Order(command.OrderId, command.Amount));
+
             return Task.FromResult(
-                CommandDispatchResult.Fail(
-                    $"Amount must be greater than zero (received {command.Amount})."));
+                CommandDispatchResult.Ok($"Order '{command.OrderId}' created for {command.Amount:C}."));
         }
-
-        repository.Save(new Order(command.OrderId, command.Amount));
-
-        return Task.FromResult(
-            CommandDispatchResult.Ok($"Order '{command.OrderId}' created for {command.Amount:C}."));
     }
 }

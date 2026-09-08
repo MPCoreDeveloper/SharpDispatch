@@ -15,6 +15,7 @@
 // =============================================================================
 
 using SharpDispatch;
+using MinimalApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,76 +51,79 @@ app.MapGet("/orders/{orderId}", (string orderId, IOrderRepository repository) =>
         : Results.Ok(order);
 });
 
-app.Run();
+await app.RunAsync();
 // =============================================================================
 // Domain types (kept in one file for readability).
 // =============================================================================
 
-/// <summary>Command: an immutable request to create an order.</summary>
-public sealed record CreateOrderCommand(string OrderId, decimal Amount) : ICommand;
-
-/// <summary>Read model returned by the read side.</summary>
-public sealed record Order(string OrderId, decimal Amount);
-
-public interface IOrderRepository
+namespace MinimalApi
 {
-    Order? Get(string orderId);
+    /// <summary>Command: an immutable request to create an order.</summary>
+    public sealed record CreateOrderCommand(string OrderId, decimal Amount) : ICommand;
 
-    void Save(Order order);
-}
+    /// <summary>Read model returned by the read side.</summary>
+    public sealed record Order(string OrderId, decimal Amount);
 
-public sealed class InMemoryOrderRepository : IOrderRepository
-{
-    private readonly Dictionary<string, Order> _orders = new(StringComparer.Ordinal);
-
-    public Order? Get(string orderId)
-        => _orders.TryGetValue(orderId, out var order) ? order : null;
-
-    public void Save(Order order) => _orders[order.OrderId] = order;
-}
-
-/// <summary>Handler: validates the command and applies the state change.</summary>
-public sealed class CreateOrderCommandHandler(IOrderRepository repository) : ICommandHandler<CreateOrderCommand>
-{
-    public Task<CommandDispatchResult> HandleAsync(
-        CreateOrderCommand command,
-        CancellationToken cancellationToken)
+    public interface IOrderRepository
     {
-        if (command.Amount <= 0)
-        {
-            return Task.FromResult(
-                CommandDispatchResult.Fail("Amount must be greater than zero."));
-        }
+        Order? Get(string orderId);
 
-        repository.Save(new Order(command.OrderId, command.Amount));
-
-        return Task.FromResult(
-            CommandDispatchResult.Ok($"Order '{command.OrderId}' created."));
+        void Save(Order order);
     }
-}
 
-/// <summary>Decorator that logs every dispatch. Constructed by TryDecorate.</summary>
-public sealed class LoggingCommandDispatcher(
-    ICommandDispatcher inner,
-    ILogger<LoggingCommandDispatcher> logger) : ICommandDispatcher
-{
-    public async Task<CommandDispatchResult> DispatchAsync<TCommand>(
-        TCommand command,
-        CancellationToken cancellationToken = default)
-        where TCommand : ICommand
+    public sealed class InMemoryOrderRepository : IOrderRepository
     {
-        logger.LogInformation(
-            "Dispatching {CommandType} with {Command}",
-            typeof(TCommand).Name,
-            command);
+        private readonly Dictionary<string, Order> _orders = new(StringComparer.Ordinal);
 
-        var result = await inner.DispatchAsync(command, cancellationToken);
+        public Order? Get(string orderId)
+            => _orders.TryGetValue(orderId, out var order) ? order : null;
 
-        logger.LogInformation(
-            "Dispatch {CommandType} completed. Success={Success}",
-            typeof(TCommand).Name,
-            result.Success);
+        public void Save(Order order) => _orders[order.OrderId] = order;
+    }
 
-        return result;
+    /// <summary>Handler: validates the command and applies the state change.</summary>
+    public sealed class CreateOrderCommandHandler(IOrderRepository repository) : ICommandHandler<CreateOrderCommand>
+    {
+        public Task<CommandDispatchResult> HandleAsync(
+            CreateOrderCommand command,
+            CancellationToken cancellationToken = default)
+        {
+            if (command.Amount <= 0)
+            {
+                return Task.FromResult(
+                    CommandDispatchResult.Fail("Amount must be greater than zero."));
+            }
+
+            repository.Save(new Order(command.OrderId, command.Amount));
+
+            return Task.FromResult(
+                CommandDispatchResult.Ok($"Order '{command.OrderId}' created."));
+        }
+    }
+
+    /// <summary>Decorator that logs every dispatch. Constructed by TryDecorate.</summary>
+    public sealed class LoggingCommandDispatcher(
+        ICommandDispatcher inner,
+        ILogger<LoggingCommandDispatcher> logger) : ICommandDispatcher
+    {
+        public async Task<CommandDispatchResult> DispatchAsync<TCommand>(
+            TCommand command,
+            CancellationToken cancellationToken = default)
+            where TCommand : ICommand
+        {
+            logger.LogInformation(
+                "Dispatching {CommandType} with {Command}",
+                typeof(TCommand).Name,
+                command);
+
+            var result = await inner.DispatchAsync(command, cancellationToken);
+
+            logger.LogInformation(
+                "Dispatch {CommandType} completed. Success={Success}",
+                typeof(TCommand).Name,
+                result.Success);
+
+            return result;
+        }
     }
 }

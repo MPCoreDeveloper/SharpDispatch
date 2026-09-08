@@ -88,7 +88,7 @@ public sealed class InMemoryCommandDispatcher : ICommandDispatcher
     {
         public Task<CommandDispatchResult> HandleAsync(
             TCommand command,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
             => handler(command, cancellationToken);
     }
 }

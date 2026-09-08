@@ -16,6 +16,7 @@
 using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using SharpDispatch;
+using HighPerformance;
 
 const int Iterations = 250_000;
 
@@ -84,18 +85,21 @@ static double ToOpsPerSecond(double nanosecondsPerOp)
 // Domain types (kept in one file for readability).
 // =============================================================================
 
-/// <summary>
-/// Struct command. Because it is a value type, the JIT-specialised dispatch
-/// path in OptimizedCommandDispatcher never boxes it.
-/// </summary>
-public readonly record struct ShipOrderCommand(string OrderId, int Units) : ICommand;
-
-/// <summary>Stateless handler — safe to register as a singleton.</summary>
-public sealed class ShipOrderCommandHandler : ICommandHandler<ShipOrderCommand>
+namespace HighPerformance
 {
-    public Task<CommandDispatchResult> HandleAsync(
-        ShipOrderCommand command,
-        CancellationToken cancellationToken)
-        => Task.FromResult(
-            CommandDispatchResult.Ok($"Shipped {command.Units} unit(s) of '{command.OrderId}'."));
+    /// <summary>
+    /// Struct command. Because it is a value type, the JIT-specialised dispatch
+    /// path in OptimizedCommandDispatcher never boxes it.
+    /// </summary>
+    public readonly record struct ShipOrderCommand(string OrderId, int Units) : ICommand;
+
+    /// <summary>Stateless handler — safe to register as a singleton.</summary>
+    public sealed class ShipOrderCommandHandler : ICommandHandler<ShipOrderCommand>
+    {
+        public Task<CommandDispatchResult> HandleAsync(
+            ShipOrderCommand command,
+            CancellationToken cancellationToken = default)
+            => Task.FromResult(
+                CommandDispatchResult.Ok($"Shipped {command.Units} unit(s) of '{command.OrderId}'."));
+    }
 }
