@@ -1,8 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <LangVersion>14.0</LangVersion>
+    <!-- v1.1.0-RC.1: multi-target net10 (C# 14) + net11 (C# 15 preview).
+         Mirrors the SharpCoreDB net11 RC pattern: conditional LangVersion and
+         the runtime-async feature switch on net11 only. -->
+    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
+    <LangVersion Condition="'$(TargetFramework)' == 'net11.0'">preview</LangVersion>
+    <LangVersion Condition="'$(TargetFramework)' != 'net11.0'">14.0</LangVersion>
+    <Features Condition="'$(TargetFramework)' == 'net11.0'">$(Features);runtime-async=on</Features>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -11,11 +16,13 @@
     <NoWarn>$(NoWarn);1591;SA1101;SA1633;SA1309</NoWarn>
 
     <PackageId>SharpDispatch</PackageId>
-    <Version>1.0.2</Version>
+    <Version>1.1.0-RC.1</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
     <Authors>MPCoreDeveloper</Authors>
     <Company>Posseth Software</Company>
     <Product>SharpDispatch</Product>
-    <Description>Standalone CQRS command dispatching primitives for .NET 10.</Description>
+    <Description>Standalone CQRS command dispatching primitives for .NET 10 and .NET 11 (C# 14 / C# 15).</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Copyright (c) 2026 Posseth Software. Licensed under the MIT License.</Copyright>
     <PackageReadmeFile>NuGet.README.md</PackageReadmeFile>
@@ -24,7 +31,7 @@
     <PackageReleaseNotes>Third release of SharpDispatch. Backwards-compatible enhancements: IsSuccess/IsFailure and FromException on CommandDispatchResult, AddCommandHandler lifetime overload, delegate registration + HandlerCount/ContainsHandler on InMemoryCommandDispatcher, new TryDecorate decorator helper, xUnit test suite (43 tests), runnable examples and structured docs. Dependencies updated to latest stable (DI.Abstractions 10.0.11, SourceLink.GitHub 10.0.400).</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/MPCoreDeveloper/SharpDispatch</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>cqrs;command-dispatch;command-dispatcher;patterns;architecture;net10;high-performance;native-aot;dependency-injection</PackageTags>
+    <PackageTags>cqrs;command-dispatch;command-dispatcher;patterns;architecture;net10;net11;high-performance;native-aot;dependency-injection</PackageTags>
     
     <!-- Symbol Package Configuration -->
     <IncludeSymbols>true</IncludeSymbols>
