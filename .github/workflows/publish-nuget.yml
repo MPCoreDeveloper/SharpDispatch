@@ -55,7 +55,9 @@ jobs:
             echo "::error::NUGET_API_KEY secret is not configured for this repository."
             exit 1
           fi
-          for pkg in ./artifacts/*.nupkg ./artifacts/*.snupkg; do
+          # Only the .nupkg is pushed. SharpDispatch embeds its PDBs (DebugType=embedded),
+          # so a symbol package (.snupkg) would contain no files and NuGet rejects it with a 400.
+          for pkg in ./artifacts/*.nupkg; do
             [ -f "$pkg" ] || continue
             echo "  -> Pushing $(basename "$pkg")"
             dotnet nuget push "$pkg" \
